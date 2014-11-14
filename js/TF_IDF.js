@@ -21,26 +21,30 @@ console.log("calculate IDF");
 
 var N = data.length;
 
-var IDFs = mapreduce(data, function(item,emit)
-{
-	for(word in item.splitted)
+var IDFs = mapreduce(data, 
+	function(item,emit)
 	{
-		emit( item.splitted[word], item.id );
-	}
-},
-function(key,values,emit)
-{
-	values = values && values.filter(function(item, pos) {
-		return values.indexOf(item) == pos;
-	});
+		for(word in item.splitted)
+		{
+			emit( item.splitted[word], item.id );
+		}
+	},
+	function(key,values,emit)
+	{
+		values = values && values.filter(function(item, pos) {
+			return values.indexOf(item) == pos;
+		});
 
-	emit({ word: key, IDF: log2( N / values.length )});
-});
+		emit({ word: key, IDF: log2( N / values.length )});
+	}
+);
 
 //console.log(IDFs.sort(function(a,b) { return b.IDF - a.IDF }).slice(0,20));
 
 var IDFtable = [];
 IDFs.forEach(function(pair) { IDFtable[pair.word] = pair.IDF; });
+
+console.log("calculate IT.IDF and report 5 most important words in each msg");
 
 /* for each document, extract the most significant words */
 data.forEach(function(msg)
@@ -68,5 +72,5 @@ data.forEach(function(msg)
 	}
 
 	summary = summary.sort(function(a,b) { return b.TF_IDF - a.TF_IDF }).slice(0,5);
-	console.log(msg.subject,summary);
+	console.log(msg.id.slice(0,5), msg.subject,'[',summary.map(function(s){ return s.word; }).join(' | '),']');
 });
